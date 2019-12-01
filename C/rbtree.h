@@ -14,7 +14,6 @@ typedef struct rbnode_ {
 } rbnode;
 
 
-
 typedef struct rbtree_ {
 	struct rbnode_ *root;
 	int (*comparator)(const void*, const void*);

@@ -32,15 +32,17 @@
 	Левый поворот
 */
 void rotate_left(rbtree *tree, rbnode *x) {
-
+	
 }
 
 /*
 	Правый поворот
 */
 void rotate_right(rbtree *tree, rbnode *x) {
-
+	
 }
+
+
 /*
 	Восстановение красно-чёрных свойств дерева
 	после вставки узла в дерево
