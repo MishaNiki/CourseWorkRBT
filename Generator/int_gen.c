@@ -13,7 +13,7 @@ void swap (int *a, int *b) {
 
 
 void swapines(int *array, int n){
-	for(int i = 0; i < n; i+=3){
+	for(int i = 0; i < n - 1; i+=3){
 		swap(&array[i], &array[i+1]); 
 	}
 }
@@ -80,18 +80,12 @@ int main(){
 		fin = fopen(path, "w");
 		printf("файл: %s начал загрузку\n", path);
 		fprintf(fin, "%d\n", s);
-		
 		array = (int*)malloc(s * sizeof(int));
-
-
 		for(int j = 0; j < s; j++)
 			array[j] = j;
-
 		swapines(array, s);
-
 		for(int j = 0; j < s; j++)
 			fprintf(fin, "%d\n", array[j]);
-
 		free(array);
 		s += h;
 		fclose(fin);

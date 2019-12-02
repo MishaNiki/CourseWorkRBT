@@ -28,7 +28,7 @@ int main(){
 
 	srand(time(NULL));
 	for(int i = 0; 1; i++){		
-		a = rand()%20;
+		a = rand()%50;
 		printf("Дальше?\t");
 		char c;
 		fscanf(stdin, "%c", &c);
@@ -39,16 +39,16 @@ int main(){
 			insert_rbnode(tree, &a, sizeof(int));
 		} else {
 			printf("Число %d уже есть, i = %d\n Удаление элемента\n", *(int*)tmp->data, i);
-			delete_rbnode(tree, tmp);
+			//delete_rbnode(tree, tmp);
 			printf("Удаление завершено\n");
 		}
 		printf("ROOT %d\n", *(int*)tree->root->data);
-		draw_rbtree_int(tree, stdout, 16, data_to_string);
+		draw_rbtree(tree, stdout, 16, data_to_string);
 	}
 
 	print_rbtree(tree, print_data);
 	printf("Максимальная глубина %d\n", deep_rbtree(tree));
-	draw_rbtree_int(tree, stdout, 16, data_to_string);
+	draw_rbtree(tree, stdout, 16, data_to_string);
 	delete_rbtree(tree);
 	return 0;
 }

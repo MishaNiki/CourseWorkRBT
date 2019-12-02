@@ -55,7 +55,7 @@ func (test *Testing) ArrayFilling(idxPath, numTest int) *Testing {
 	}
 
 	for i := 0; i < test.sizeDelete; i++ {
-		fmt.Fscan(fin, &test.deleteArr[i])
+		fmt.Fscan(fdel, &test.deleteArr[i])
 	}
 
 	return test	
@@ -88,7 +88,7 @@ func main() {
 					tree.Remove(node)
 				}
 			}
-			
+			//println(tree.String())
 			tree.Clear()
 
 			end := time.Now()

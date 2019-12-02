@@ -29,24 +29,125 @@
 */
 
 /*
+	Определение цвета узла
+*/
+rbnode_color rbnode_color(rbnode *x) {
+	if(x == NULL)
+		return BLACK;
+	return x->color;
+}
+
+/*
+	Поиск дедушки
+*/
+rbnode *grandparen(rbnode *x) {
+	if(x == NULL || x->parent == NULL)
+		return NULL;
+	return x->parent->parent;
+}
+
+/*
+	Поиск дяди
+*/
+rbnode *uncle(rbnode *x) {
+	rbnode *g = grandparen(x);
+	if(g == NULL)
+		return NULL;
+	if(x->parent == g->left)
+		return g->right;
+	else
+		return g->left;
+}
+
+/*
+	Поиск брата
+*/
+rbnode *sibling(rbnode *x) {
+
+	if(x->parent == NULL)
+		return NULL;
+	if(x == x->parent->left)
+		return x->parent->right;
+	else
+		return x->parent->left;
+}
+
+/*
+	Замена узлов
+*/
+void replace_rbnode(rbtree *tree,rbnode *x, rbnode *child) {
+	if(x->parent == NULL)
+		tree->root = child;
+	if(child == NULL)
+		return;
+	child->parent = x->parent;
+	if(x == x->parent->left)
+		x->parent->left = child;
+	else
+		x->parent->right = child;
+}
+
+/*
+	Максимальный элемент в дереве(поддереве)
+*/
+rbnode *maximum_node(rbnode *x) {
+	if(x == NULL){
+		return NULL;
+	}
+	while (x->right != NULL) {
+		x = x->right;
+	}
+	return x;
+}
+
+/*
 	Левый поворот
 */
 void rotate_left(rbtree *tree, rbnode *x) {
+
+	if(x == NULL || x->right == NULL) return; //причины по которым невозможен поворот
+
+	rbnode *y = x->right;
+	x->right = y->left;
+	if(y->left != NULL) y->left->parent = x;
+	y->parent = x->parent;
 	
+	if(x->parent != NULL){
+		if(x == x->parent->left)
+			x->parent->left = y;
+		else
+			x->parent->right = y;
+	} else {
+		tree->root = y;
+	}
+	y->left = x;
+	x->parent = y;
 }
 
 /*
 	Правый поворот
 */
 void rotate_right(rbtree *tree, rbnode *x) {
-	
+
+	if(x == NULL || x->left == NULL) return; //причины по которым невозможен поворот
+
+	rbnode *y = x->left;
+	x->left = y->right;
+	if(y->right != NULL) y->right->parent = x;
+	y->parent = x->parent;
+
+	if(x->parent != NULL){
+		if(x == x->parent->left)
+			x->parent->left = y;
+		else
+			x->parent->right = y;
+	} else {
+		tree->root = y;
+	}
+	y->right = x;
+	x->parent = y;	
 }
 
-
-/*
-	Восстановение красно-чёрных свойств дерева
-	после вставки узла в дерево
-*/
 
 /*
 	Присваивание
@@ -62,22 +163,168 @@ void assignment(void *a, void *b, size_t size_type) {
 /*
 	Вставка в дерево нового элемента
 	Возращает указатель на вставленный элемент
+
 */
+
+void insert_case5(rbtree *tree, rbnode *x){
+	rbnode *g = grandparen(x);
+	x->parent->color = BLACK;
+	g->color = RED;
+	if(x == x->parent->left && x->parent == g->left)
+		rotate_right(tree, g);
+	else
+		rotate_left(tree, g);
+}
+
+void insert_case4(rbtree *tree, rbnode *x){
+	rbnode *g = grandparen(x);
+	if(x == x->parent->right && x->parent == g->left) {
+		rotate_left(tree, x->parent);
+		x = x->left;
+	} else if(x == x->parent->left && x->parent == g->right) {
+		rotate_right(tree, x->parent);
+		x = x->right;
+	}
+	insert_case5(tree, x);
+
+}
+
+void insert_case1(rbtree *tree, rbnode *x);
+void insert_case3(rbtree *tree, rbnode *x) {
+	rbnode *u = uncle(x), *g;
+	if(rbnode_color(u) == RED) {
+		x->parent->color = BLACK;
+		u->color = BLACK;
+		g = grandparen(x);
+		g->color = RED;
+		insert_case1(tree, g);
+	}else {
+		insert_case4(tree, x);
+	}
+}
+
+void insert_case2(rbtree *tree, rbnode *x) {
+	if(x->parent->color == BLACK)
+		return;
+	else
+		insert_case3(tree, x);
+}
+
+void insert_case1(rbtree *tree, rbnode *x) {
+	if(x->parent == NULL)
+		x->color = BLACK;
+	else
+		insert_case2(tree, x);
+}
+
 rbnode *insert_rbnode(rbtree *tree, void *data, size_t size_type) {
 
-	
+	rbnode *current = tree->root, *parent = NULL, *x;
+
+	while(current != NULL){
+		if(tree->comparator(data, current->data) == 0) return current;
+		parent = current;
+		current = tree->comparator(data, current->data) < 0 ?
+			current->left : current->right;
+	}
+
+	if((x = malloc(sizeof(*x))) == 0) {
+		printf ("insufficient memory (insertNode)\n");
+		exit(1);
+	}
+
+	if((x->data = malloc(size_type)) == 0){
+		printf ("insufficient memory (insertNode)\n");
+		exit(1);
+	}
+
+	assignment(x->data, data, size_type);
+	x->parent 	= parent;
+	x->left		= NULL;
+	x->right	= NULL;
+	x->color	= RED;
+
+	if(parent != NULL) {
+		if(tree->comparator(data, parent->data) < 0)
+			parent->left = x;
+		else
+			parent->right = x;
+	} else {
+		tree->root = x;
+	}
+
+	insert_case1(tree, x);
+
+	return x;
 }
 
 /*
 	Восстановление красно-чёрных свойств дерева
 	после удаления узла
 */
+void delete_case6(rbtree *tree, rbnode *x) {
+	/*TO-DO*/
+}
+
+void delete_case5(rbtree *tree, rbnode *x) {
+	/*TO-DO*/
+}
+
+void delete_case4(rbtree *tree, rbnode *x) {
+	/*TO-DO*/
+}
+
+void delete_case3(rbtree *tree, rbnode *x) {
+	/*TO-DO*/
+}
+
+void delete_case2(rbtree *tree, rbnode *x) {
+	rbnode *sib = sibling(x);
+	if(sib->color == RED) {
+		x->parent->color = RED;
+		sib->color = BLACK;
+		if(x == x->parent->left)
+			rotate_left(tree, x->parent);
+		else
+			rotate_right(tree, x->parent);
+	}
+	delete_case3(tree, x)
+}
+
+void delete_case1(rbtree *tree, rbnode *x) {
+	if(x->parent != NULL)
+		delete_case2(tree, x);
+}
 
 /*
 	Удаление узла дерева
 */
-void delete_rbnode(rbtree *tree, rbnode *z) {
+void delete_rbnode(rbtree *tree, rbnode *x) {
 
+	rbnode *child;
+	if(x == NULL)
+		return;
+	if(x->left != NULL && x->right != NULL) {
+		rbnode *pred = maximum_node(node->left);
+		free(x->data);
+		x->data = pred->data;
+		x = pred;
+	}
+	if(x->left == NULL || x->right == NULL) {
+		if(x->right == NULL)
+			child = node->left;
+		else
+			child = node->right;
+		if(x->color = BLACK) {
+			x->color = rbnode_color(child);
+			delete_case1(tree, x);
+		}
+		replace_rbnode(tree, node, child);
+		if x->parent == NULL && child != NULL {
+			child->color = BLACK;
+		}
+	}
+	free(x);
 }
 
 /*
@@ -163,7 +410,7 @@ rbtree *create_rbtree(int (*comparator)(const void*, const void*)) {
 
 int max_deep_rbtree(rbnode *x){
 	
-	if(x == NIL) return 0;
+	if(x == NULL) return 0;
 	int x1 = max_deep_rbtree(x->left);
 	int x2 = max_deep_rbtree(x->right);
 	return (x1 > x2 ? x1 + 1: x2 + 1);

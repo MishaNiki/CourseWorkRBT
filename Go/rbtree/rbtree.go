@@ -28,12 +28,9 @@ type Rbnode struct {
 	Parent	*Rbnode
 }
 
-//var NIL *Rbnode = &Rbnode{Data: nil, color: black, Parent: nil}
 
 //создание дерева, присваивание интерфеса сравнения ключей
 func CreateRBTree(Comp Comparator) *Rbtree {
-	//NIL.Left = NIL
-	//NIL.Right = NIL
 	return &Rbtree{nil, Comp}
 }
 
