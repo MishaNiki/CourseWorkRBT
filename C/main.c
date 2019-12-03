@@ -18,38 +18,83 @@ void data_to_string(const void *x, char *data) {
 	snprintf(data,  sizeof(data) - 1, "%d", *(int*)x);
 }
 
-int main(){
 
-	rbtree *tree = create_rbtree(compare);
-	rbnode *tmp;
-	int n, a;
-	printf("Введи количество \t");
-	fscanf(stdin, "%d", &n);
+int *input_array, *delete_array; 	//массив ввода данных
+size_t size_ia, size_da; 			//размер входного массива
 
-	srand(time(NULL));
-	for(int i = 0; 1; i++){		
-		a = rand()%50;
-		printf("Дальше?\t");
-		char c;
-		fscanf(stdin, "%c", &c);
-		if(c == 'n' || c == 'N')
-			break;
-		printf("a = %d\n", a);
-		if((tmp = find_rbnode(tree, &a)) == NULL){
-			insert_rbnode(tree, &a, sizeof(int));
-		} else {
-			printf("Число %d уже есть, i = %d\n Удаление элемента\n", *(int*)tmp->data, i);
-			//delete_rbnode(tree, tmp);
-			printf("Удаление завершено\n");
-		}
-		printf("ROOT %d\n", *(int*)tree->root->data);
-		draw_rbtree(tree, stdout, 16, data_to_string);
+void array_filling (int idx_path, int test) {
+
+	char path[3][64] = {"../test/rand/", "../test/sort/", "../test/swap/"};
+	char name_input_file[] 	= "input";
+	char name_delete_file[] = "delete";
+	char buff_input_file[64], buff_delete_file[64];
+
+	FILE *fin, *fdel;
+	snprintf(buff_input_file,  63, "%s%s%d", path[idx_path], name_input_file, test);
+	snprintf(buff_delete_file, 63, "%s%s%d", path[idx_path], name_delete_file, test);
+	fin  = fopen(buff_input_file, "r");
+	fdel = fopen(buff_delete_file, "r");
+
+	if(fin == NULL || fdel == NULL){
+		fprintf(stderr, "FILE not found!!!\n");
+		exit(1);
 	}
 
-	print_rbtree(tree, print_data);
-	printf("Максимальная глубина %d\n", deep_rbtree(tree));
-	draw_rbtree(tree, stdout, 16, data_to_string);
-	delete_rbtree(tree);
-	return 0;
+	fscanf(fin, "%d", &size_ia);
+	fscanf(fdel, "%d", &size_da);
+
+	input_array  = (int*)malloc(size_ia * sizeof(int)); 
+	delete_array = (int*)malloc(size_da * sizeof(int));
+
+	for(int i = 0; i < size_ia; i++)
+		fscanf(fin, "%d", &input_array[i]);
+
+	for(int i = 0; i < size_da; i++)
+		fscanf(fdel, "%d", &delete_array[i]);
+
+
 }
 
+
+int main () {
+	
+	clock_t start, end, result[10];
+	rbnode *tmp;
+
+	char output_path[3][64] = {"../result/C/rand", "../result/C/sort", "../result/C/swap"};
+
+	for(int k = 0; k < 3; k++){
+		for(int i = 0; i < 10; i++){
+
+			array_filling(k, i);
+			printf("Начало работы\n");
+			start = clock();
+			rbtree *tree = create_rbtree(compare);
+			for(int j = 0; j < size_ia; j++)
+				insert_rbnode(tree, &input_array[j], sizeof(int));
+			for(int j = 0; j < size_da; j++)
+				if((tmp = find_rbnode(tree, &delete_array[j])) != NULL)
+					delete_rbnode(tree, tmp);
+			delete_rbtree(tree);
+			end = clock();
+			result[i] = end - start;
+			printf("time = %d\tk = %d\ti = %d\n", result[i]/CLOCKS_PER_SEC, k, i);
+			
+			free(input_array);
+			free(delete_array);
+		}
+
+		FILE *fout = fopen(output_path[k], "w");
+		if(fout == NULL){
+			fprintf(stderr, "FILE not found!!!\n");
+			exit(1);
+		}
+
+		for(int i = 0; i < 10; i++)
+			fprintf(fout, "%d\n", result[i]/CLOCKS_PER_SEC);
+		fclose(fout);
+
+	}
+	
+	return 0;
+}

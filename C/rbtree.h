@@ -14,6 +14,9 @@ typedef struct rbnode_ {
 } rbnode;
 
 
+#define NIL &sentinel
+rbnode sentinel;		//tree leaves
+
 typedef struct rbtree_ {
 	struct rbnode_ *root;
 	int (*comparator)(const void*, const void*);
