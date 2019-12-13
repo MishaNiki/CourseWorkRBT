@@ -78,13 +78,12 @@ rbnode *sibling(rbnode *x) {
 void replace_rbnode(rbtree *tree,rbnode *x, rbnode *child) {
 	if(x->parent == NULL)
 		tree->root = child;
-	if(child == NULL)
-		return;
-	child->parent = x->parent;
 	if(x == x->parent->left)
 		x->parent->left = child;
 	else
 		x->parent->right = child;
+	if(child != NULL)
+		child->parent = x->parent;
 }
 
 /*
@@ -252,9 +251,7 @@ rbnode *insert_rbnode(rbtree *tree, void *data, size_t size_type) {
 	} else {
 		tree->root = x;
 	}
-
 	insert_case1(tree, x);
-
 	return x;
 }
 
@@ -263,21 +260,19 @@ rbnode *insert_rbnode(rbtree *tree, void *data, size_t size_type) {
 	после удаления узла
 */
 void delete_case6(rbtree *tree, rbnode *x) {
-	
 	rbnode *sib = sibling(x);
 	sib->color = x->parent->color;
 	x->parent->color = BLACK;
-	if(x == x->parent->left) {
+	if(x == x->parent->left && node_color(sib->right) == RED) {
 		sib->right->color = BLACK;
 		rotate_left(tree, x->parent);
-	} else {
+	} else if(node_color(sib->left) == RED){
 		sib->left->color = BLACK;
 		rotate_right(tree, x->parent);
 	}
 }
 
 void delete_case5(rbtree *tree, rbnode *x) {
-	
 	rbnode *sib = sibling(x);
 	if(sib != NULL && node_color(sib) == BLACK) {
 		
@@ -295,7 +290,6 @@ void delete_case5(rbtree *tree, rbnode *x) {
 }
 
 void delete_case4(rbtree *tree, rbnode *x) {
-	
 	rbnode *sib = sibling(x);
 	if(sib != NULL && node_color(x->parent) == RED && node_color(sib) == BLACK && 
 		node_color(sib->left) == BLACK && node_color(sib->right) == BLACK) {
@@ -308,7 +302,6 @@ void delete_case4(rbtree *tree, rbnode *x) {
 
 void delete_case1(rbtree *tree, rbnode *x);
 void delete_case3(rbtree *tree, rbnode *x) {
-	
 	rbnode *sib = sibling(x);
 	if(sib != NULL && node_color(x->parent) == BLACK && node_color(sib) == BLACK && 
 		node_color(sib->left) == BLACK && node_color(sib->right) == BLACK) {
@@ -360,13 +353,15 @@ void delete_rbnode(rbtree *tree, rbnode *x) {
 			child = x->left;
 		else
 			child = x->right;
-		if(x->color = BLACK) {
+		if(x->color == BLACK) {
 			x->color = node_color(child);
 			delete_case1(tree, x);
 		}
 		replace_rbnode(tree, x, child);
 		if(x->parent == NULL && child != NULL) {
 			child->color = BLACK;
+		} else {
+
 		}
 	}
 	free(x);
@@ -502,6 +497,7 @@ void draw(rbnode *x, char *prefix, bool tail, char *str,
 	}else{
 		strcat(str, "┌── ");
 	}
+
 	memset(data, 0, sizeof(data));
 	data_to_string(x->data, data);
 	if(x->color == RED){
@@ -541,6 +537,7 @@ void draw(rbnode *x, char *prefix, bool tail, char *str,
 void draw_rbtree(rbtree *tree, FILE *stream, 
 		int max_size_data, void (*data_to_string)(const void*, char*)) {
 
+	if(tree->root == NULL) return;
 	int lenght = max_size_data + (deep_rbtree(tree) + 1) * 4; // максимальный размер одной строки в рисунке дерева
 	int count_node = size_rbtree(tree); //количество строк в рисунке дерева
 	char *str = (char*)malloc(lenght * count_node * sizeof(char));
