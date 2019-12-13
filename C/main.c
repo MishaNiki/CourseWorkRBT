@@ -75,8 +75,8 @@ int main () {
 			for(int j = 0; j < size_da; j++)
 				if((tmp = find_rbnode(tree, &delete_array[j])) != NULL)
 					delete_rbnode(tree, tmp);
-			delete_rbtree(tree);
 			end = clock();
+			delete_rbtree(tree);
 			result[i] = end - start;
 			printf("time = %d\tk = %d\ti = %d\n", result[i]/CLOCKS_PER_SEC, k, i);
 			

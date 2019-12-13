@@ -31,7 +31,7 @@
 /*
 	Определение цвета узла
 */
-rbnode_color rbnode_color(rbnode *x) {
+rbnode_color node_color(rbnode *x) {
 	if(x == NULL)
 		return BLACK;
 	return x->color;
@@ -192,7 +192,7 @@ void insert_case4(rbtree *tree, rbnode *x){
 void insert_case1(rbtree *tree, rbnode *x);
 void insert_case3(rbtree *tree, rbnode *x) {
 	rbnode *u = uncle(x), *g;
-	if(rbnode_color(u) == RED) {
+	if(node_color(u) == RED) {
 		x->parent->color = BLACK;
 		u->color = BLACK;
 		g = grandparen(x);
@@ -263,24 +263,65 @@ rbnode *insert_rbnode(rbtree *tree, void *data, size_t size_type) {
 	после удаления узла
 */
 void delete_case6(rbtree *tree, rbnode *x) {
-	/*TO-DO*/
+	
+	rbnode *sib = sibling(x);
+	sib->color = x->parent->color;
+	x->parent->color = BLACK;
+	if(x == x->parent->left) {
+		sib->right->color = BLACK;
+		rotate_left(tree, x->parent);
+	} else {
+		sib->left->color = BLACK;
+		rotate_right(tree, x->parent);
+	}
 }
 
 void delete_case5(rbtree *tree, rbnode *x) {
-	/*TO-DO*/
+	
+	rbnode *sib = sibling(x);
+	if(sib != NULL && node_color(sib) == BLACK) {
+		
+		if(x == x->parent->left && node_color(sib->right) == BLACK && node_color(sib->left) == RED) {
+			sib->color = RED;
+			sib->left->color = BLACK;
+			rotate_right(tree, sib);
+		} else if(x == x->parent->right && node_color(sib->right) == RED && node_color(sib->left) == BLACK) {
+			sib->color = RED;
+			sib->right->color = BLACK;
+			rotate_left(tree, sib);
+		}
+	}
+	delete_case6(tree, x);
 }
 
 void delete_case4(rbtree *tree, rbnode *x) {
-	/*TO-DO*/
+	
+	rbnode *sib = sibling(x);
+	if(sib != NULL && node_color(x->parent) == RED && node_color(sib) == BLACK && 
+		node_color(sib->left) == BLACK && node_color(sib->right) == BLACK) {
+		sib->color = RED;
+		x->parent->color = BLACK;
+	} else {
+		delete_case5(tree, x);
+	}
 }
 
+void delete_case1(rbtree *tree, rbnode *x);
 void delete_case3(rbtree *tree, rbnode *x) {
-	/*TO-DO*/
+	
+	rbnode *sib = sibling(x);
+	if(sib != NULL && node_color(x->parent) == BLACK && node_color(sib) == BLACK && 
+		node_color(sib->left) == BLACK && node_color(sib->right) == BLACK) {
+		sib->color = RED;
+		delete_case1(tree, x->parent);
+	} else {
+		delete_case4(tree, x);
+	}
 }
 
 void delete_case2(rbtree *tree, rbnode *x) {
 	rbnode *sib = sibling(x);
-	if(sib->color == RED) {
+	if(node_color(sib) == RED) {
 		x->parent->color = RED;
 		sib->color = BLACK;
 		if(x == x->parent->left)
@@ -288,7 +329,7 @@ void delete_case2(rbtree *tree, rbnode *x) {
 		else
 			rotate_right(tree, x->parent);
 	}
-	delete_case3(tree, x)
+	delete_case3(tree, x);
 }
 
 void delete_case1(rbtree *tree, rbnode *x) {
@@ -301,26 +342,30 @@ void delete_case1(rbtree *tree, rbnode *x) {
 */
 void delete_rbnode(rbtree *tree, rbnode *x) {
 
-	rbnode *child;
 	if(x == NULL)
 		return;
+
 	if(x->left != NULL && x->right != NULL) {
-		rbnode *pred = maximum_node(node->left);
+		rbnode *pred = maximum_node(x->left);
 		free(x->data);
 		x->data = pred->data;
 		x = pred;
+	} else {
+		free(x->data);
 	}
+
 	if(x->left == NULL || x->right == NULL) {
+		rbnode *child;
 		if(x->right == NULL)
-			child = node->left;
+			child = x->left;
 		else
-			child = node->right;
+			child = x->right;
 		if(x->color = BLACK) {
-			x->color = rbnode_color(child);
+			x->color = node_color(child);
 			delete_case1(tree, x);
 		}
-		replace_rbnode(tree, node, child);
-		if x->parent == NULL && child != NULL {
+		replace_rbnode(tree, x, child);
+		if(x->parent == NULL && child != NULL) {
 			child->color = BLACK;
 		}
 	}
@@ -483,6 +528,14 @@ void draw(rbnode *x, char *prefix, bool tail, char *str,
 	Выделение памяти и подготовка к отрисовке дерева
 	определения размера строки в которую будет помещаться рисунок
 	выделение и чиска памяти
+
+-------------------------------------------------------------------------
+	draw_rbtree
+		tree - дерево которое нужно отрисовать
+		stream - поток вывода
+		max_size_data - максимальная длина строки из числа
+		data_to_string - 	
+-------------------------------------------------------------------------
 
 */
 void draw_rbtree(rbtree *tree, FILE *stream, 
