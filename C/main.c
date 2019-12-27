@@ -24,13 +24,19 @@ size_t size_ia, size_da; 			//размер входного массива
 
 void array_filling (int idx_path, int test) {
 
-	char path[3][64] = {"../test/rand/", "../test/sort/", "../test/swap/"};
+	int idx_path_in;
+	if(idx_path > 2)
+		idx_path_in = 1;
+	else
+		idx_path_in = idx_path;
+
+	char path[5][64] = {"../test/rand/", "../test/sort/", "../test/swap/", "../test/decsort/", "../test/insort/"};
 	char name_input_file[] 	= "input";
 	char name_delete_file[] = "delete";
 	char buff_input_file[64], buff_delete_file[64];
 
 	FILE *fin, *fdel;
-	snprintf(buff_input_file,  63, "%s%s%d", path[idx_path], name_input_file, test);
+	snprintf(buff_input_file,  63, "%s%s%d", path[idx_path_in], name_input_file, test);
 	snprintf(buff_delete_file, 63, "%s%s%d", path[idx_path], name_delete_file, test);
 	fin  = fopen(buff_input_file, "r");
 	fdel = fopen(buff_delete_file, "r");
@@ -39,7 +45,6 @@ void array_filling (int idx_path, int test) {
 		fprintf(stderr, "FILE not found!!!\n");
 		exit(1);
 	}
-
 	fscanf(fin, "%d", &size_ia);
 	fscanf(fdel, "%d", &size_da);
 
@@ -52,7 +57,8 @@ void array_filling (int idx_path, int test) {
 	for(int i = 0; i < size_da; i++)
 		fscanf(fdel, "%d", &delete_array[i]);
 
-
+	fclose(fin);
+	fclose(fdel);	
 }
 
 
@@ -61,9 +67,9 @@ int main () {
 	clock_t start, end, result[10];
 	rbnode *tmp;
 
-	char output_path[3][64] = {"../result/C/rand", "../result/C/sort", "../result/C/swap"};
+	char output_path[5][64] = {"../result/C/rand", "../result/C/sort", "../result/C/swap", "../result/C/decsort", "../result/C/insort"};
 
-	for(int k = 0; k < 3; k++){
+	for(int k = 3; k < 5; k++){
 		for(int i = 0; i < 10; i++){
 
 			array_filling(k, i);
@@ -78,7 +84,7 @@ int main () {
 			end = clock();
 			delete_rbtree(tree);
 			result[i] = end - start;
-			printf("time = %d\tk = %d\ti = %d\n", result[i]/CLOCKS_PER_SEC, k, i);
+			printf("time = %.3f\tk = %d\ti = %d\n", (double)result[i]/CLOCKS_PER_SEC, k, i);
 			
 			free(input_array);
 			free(delete_array);
@@ -91,7 +97,7 @@ int main () {
 		}
 
 		for(int i = 0; i < 10; i++)
-			fprintf(fout, "%d\n", result[i]/CLOCKS_PER_SEC);
+			fprintf(fout, "%d %.3f\n", (i+1)*1000000,(double)result[i]/CLOCKS_PER_SEC);
 		fclose(fout);
 
 	}
